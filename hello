@@ -1,2 +1,11 @@
 #!bin/bash
-echo "hello world"
+echo "are you hungry"
+read ans
+
+if [ $ans == 'yes' ]
+then
+	echo "eat food"
+else
+	echo "Do some work"
+fi
+
