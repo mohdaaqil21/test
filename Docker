@@ -1,0 +1,337 @@
+##cheatsheet reference: https://devhints.io/docker-compose
+
+################################# what is virtualization ? ##############################
+Virtualization is a creation of logical object version in place of an actual version.
+
+Image-> Class
+container-> object 
+
+#Container
+Containers are multiple isolated services that are run on a single control host (underlying infrastructure) and they access a single kernel.
+They isolate applications from one another.
+
+################################ Docker Components/Architecture ##############################
+Docker components include
+
+1. Docker daemon 
+   between Rest API
+2. Docker client
+3. Docker Objects
+	Images
+	Containers / Services
+	Network
+	Volumes
+3.Docker Registry
+
+Explaination: Docker client(where we mention commands like docker pull etc) communicates with the docker daemon through Rest API calls. A docker client can send a request to many docker daemons.
+
+Generally, docker follows a client-server architecture 
+1.The client communicates with the daemon, which generally takes up the task of building,running, and shipping the docker containers. 
+2.The client and daemon communicate using REST API calls. These calls act as an interface between the client and daemon 
+3.A command-line interface, Docker CLI runs docker commands. Some basic docker commands with examples are listed in the next section. 
+4.Registry stores the docker images 
+
+
+################################ Docker Workflow ################################ 
+Docker workflow includes the following components:
+
+Docker Image - Read only template that stores the application and environment.
+Docker Container - Runtime instance of a docker image
+Docker registry - Public and private repositories to store images
+Docker File - Automates Image construction
+Docker file Compose - Compose is a tool that can be used to manage multiple containers containing different applications.
+
+
+################################ Docker Image  ##############################
+Docker image is the collection of all files, libraries, binaries and other dependencies forming an executable software application, which can run everywhere without glitches.
+An image is an ${inert}, ${immutable file}.
+
+Important Points:
+Docker image is read-only, i.e., the image and its content cannot be altered.
+That's why Docker Layer concept introduce. 
+
+################################ Parent and Child Images  ##############################
+The layering concept in docker images leads to the addition of required capabilities efficiently by adding a new layer to the existing one resulting in a new image.
+
+################################ Docker Network ################################
+Host and containers in Docker are tied with 1:N relationship, which means one host can command multiple containers.
+
+Various modes for networking is all about how we manage connections between containers.
+Bridge mode Networking
+Host Mode Networking
+Container Mode Networking
+No Networking
+
+################################ Docker Basic Commands ################################ 
+docker pull <<image name>> 
+e.g. docker pull nginx
+
+docker images ↵
+View all the commands that were run with an image via a container.
+
+docker history <<Image Name>>  ↵
+e.g. docker history nginx
+
+docker rmi <<Image Name>>  ↵
+e.g. docker rmi nginx
+
+docker run <<Image Name>>  ↵
+Download and run an image in docker container using run command
+e.g. docker run --name nginxservice -d nginx
+--name --> to specify a name for the running service. In this example, it is nginxservice
+-d --> to run the service in the background(detached mode)
+
+docker pull Image:<version>
+warning: Don't pull latest image because it's always changing
+For example, docker pull busybox:1.24 will download the corresponding version.
+
+docker search ubuntu | head -20
+From Dockerhub it's search result only to 20 because we have more than 2000 images on Ubuntu
+
+
+
+################################ Docker Commands - Container ################################ 
+
+Now lets run list of commands on the service/ container
+
+List running containers
+
+docker ps
+Know the IP address of the running container:
+
+docker inspect <Container Name> 
+e.g. docker inspect nginxservice
+Print the stats for a running Container
+
+docker stats <<Container Name>> ↵
+e.g. docker stats nginxservice
+Pause the processes in a running container
+
+docker pause <<Container Name >> ↵
+e.g. docker pause nginxservice
+Unpause the processes in a running container
+
+docker unpause <<Container Name >> ↵
+e.g. docker unpause nginxservice
+
+
+Kill the processes in a running container
+
+docker kill <<Container Name >> ↵
+e.g. docker kill nginxservice
+Start the same container:
+
+docker start <<Container Name>> ↵
+e.g. docker start nginxservice
+Stop the running container
+
+docker stop <<Container Name >> ↵
+e.g. docker stop nginxservice
+List all containers (This includes containers in a all states):
+
+We will be able to see the container we just stopped listed here.
+
+docker ps -a 
+Delete a container:
+
+docker rm <<Container Name >> ↵
+e.g. docker rm nginxservice
+To remove all stopped containers:
+
+docker container prune 
+Note: Instead of using the Container Name, all the above commands can be executed with the container id as well.
+
+Export a container
+
+docker export <<Container Name>> <<file_Name>>.tar ↵
+e.g. 
+Lets run a service using docker run command.
+docker run --name newnginxservice -d nginx
+docker export newnginxservice > test.tar
+Import a container
+
+docker import <<Remote URL/Image Name.tar>>  ↵
+e.g. docker import test.tar
+
+
+############### Docker Network Details & Commands #########################
+Various modes for networking is all about how we manage connections between containers using the ​network drivers.
+
+Bridge mode Networking: The default network will be bridge network.
+Unless we specify the network option in docker run command, Docker daemon connects the container to this network.
+
+Host Mode Networking: Add the container to the network stack of the host. Container in this mode will not create a new network configuration, where as share the network config of host.
+--net = host
+
+Container Mode Networking: New container created will have the same config as that of the specified Container.
+--net=container:$comtainer2
+
+No Networking: Adds container to container network stack. Hence this lacks connectivity with the host.
+--net=none
+
+ 
+docker network inspect bridge
+docker inspect command to know more on this network.
+
+#Bridge network
+docker network create <<network name>> 
+e.g. docker network create  myNetwork
+docker network create -d bridge new_bridge
+-d --> to specify the driver type (in this case its is bridge network)
+
+#Map to that network
+docker run -d --net=new_bridge --name db training/postgres<Image_name>
+
+Create Network
+Command to create new bridge network.
+
+docker network create <<network name>>
+e.g docker network create myNetwork
+
+Connect Container to Network
+docker network connect <<network name>> <<Container name>>
+e.g. Create a container busybox and connect this to myNetwork.
+
+docker run -itd --name=container1 busybox
+docker network connect myNetwork container1
+
+List all Networks
+docker network ls
+Inspect a Network
+We can inspect a network to list the configuration and containers connected to using command
+
+docker network inspect <<network name>>
+e.g.
+
+docker network inspect myNetwork
+Disconnect a container from a Network
+docker network disconnect <<network name>> <<container name>>
+e.g.
+
+docker network disconnect isolated_nw container5
+
+Remove network
+Command to remove unused network
+
+docker network rm <<network name>>
+e.g. docker network rm Mynetwork
+
+################################# Display from json #################################
+Display IP address of Container instance
+docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' tomcatContainer
+
+Display MAC address of the container
+docker inspect --format='{{range .NetworkSettings.Networks}}{{.MacAddress}}{{end}}' tomcatContainer
+
+Display log path of the container
+docker inspect --format='{{.LogPath}}' tomcatContainer
+
+Display Image name of the container
+docker inspect --format='{{.Config.Image}}' tomcatContainer
+
+Display a subsection in JSON format
+docker inspect --format='{{json .Config}}' tomcatContainer
+
+################################# Docker Volume #################################
+There are three ways of volume create:
+
+1.Host directory 
+2.Shared storage volume <last section in this docker Volume-Part>
+3.Host file
+
+Create a Volume:
+docker volume create --name new_volume
+
+Display detailed information on Volumes:
+docker volume inspect new_volume
+
+List volumes:
+docker volume ls
+
+Remove unused volumes
+docker volume prune
+
+This will remove 'new_volume'.
+Remove one or more volumes
+
+docker volume create --name new_volume1
+docker volume rm new_volume1
+
+Command to Back up Volumes:
+
+docker run --rm --volumes-from dbstore -v $(pwd):/backup ubuntu tar cvf /backup/backup.tar /dbdata
+Command to Restore Volumes:
+
+Create new container
+
+docker run -v /dbdata --name dbstore2 ubuntu /bin/bash
+docker run --rm --volumes-from dbstore2 -v $(pwd):/backup ubuntu bash -c "cd /dbdata && tar xvf /backup/backup.tar --strip 1"
+
+Data Volume Container is created to share persistent data between containers.
+
+docker create -v /dbdata --name dbstore training/postgres /bin/true
+Here we have mounted a volume '/dbdata' using image 'training/postgres'.
+
+Command to mount '/dbdata' volume to other containers using '--volumes-from' keyword.
+
+docker run -d --volumes-from dbstore --name db1 training/postgres
+docker run -d --volumes-from dbstore --name db2 training/postgres
+
+Add a Data Volume in a container directory:
+docker run -d -P --name web -v /webapp training/webapp python app.py
+
+
+##### Docker volume-self
+docker run -it -v <host_server:path>:<container_server_path> --name <desired_name> ubuntu<image>
+
+
+################################# Dockerfile #################################
+Dockerfile is a basically a textfile. it contains some set of instructions.
+Automation of Docker image creation
+
+Docker Components
+From :	for base image this command must be on top of the dockerfile.
+RUN :	To execute commands, it will create a layer in image
+MAINTAINER: Author/owner/Description
+COPY: copy files from local system(docker vm). we need to provide source, destination (we can't download file from internet and any remote repo)
+ADD: similar to copy but, it provides a features to download files from internet, also we extract file at docker image side.
+EXPOSE: To expose ports such as port 8080 for tomcat, port 80 for nginx etc
+WORKDIR: to set working directory for a container.
+CMD: execute commands but during conatiner creation.
+Entrypoint: similar to CMD but has higher priority over CMD, first commands will be executed by Entrypoint.
+ENV: Environment Variables.
+
+docker build -t <name of your image> .<for_current_directory>
+
+refernces: https://blog.knoldus.com/docker-dockerfile/
+
+################################# Docker compose #################################
+
+docker-compose start
+docker-compose stop
+docker-compose pause
+docker-compose unpause
+docker-compose ps
+docker-compose up
+docker-compose down
+
+docker-compose config <check configuration>
+
+version: '2'
+
+services:
+  web:
+    build:
+    # build from Dockerfile
+      context: ./Path
+      dockerfile: Dockerfile
+    ports:
+     - "5000:5000"
+    volumes:
+     - .:/code
+  redis:
+    image: redis
+
+Detail syntax reference: https://devhints.io/docker-compose
+ 
+
